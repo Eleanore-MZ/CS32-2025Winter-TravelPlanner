@@ -3,6 +3,11 @@
 
 #include<iostream>
 
+// to insert a new item
+// to find an item with a specific value
+// to iterate through in ascending order
+// to find an item not smaller than a specifc value -> find departure time?
+
 template<typename T>
 class BSTSet
 {
@@ -38,16 +43,16 @@ public:
 		{
 			if (m_cur == nullptr) return nullptr;
 			const T* node = &(m_cur->m_value);
-			if (m_cur->right != nullptr)
+			if (m_cur->right != nullptr) // if there is a right subtree
 			{
 				m_cur = m_cur->right;
 				while (m_cur->left != nullptr)
-					m_cur = m_cur->left;
+					m_cur = m_cur->left; // find the smallest element in that right subtree
 			}
-			else
+			else // if there's not a right subtree
 			{
-				Node* par = m_cur->parent;
-				while (par != nullptr && par->right == m_cur)
+				Node* par = m_cur->parent; // move up to the parent node
+				while (par != nullptr && par->right == m_cur) // move to the first parent where 
 				{
 					m_cur = par;
 					par = par->parent;

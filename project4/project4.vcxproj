@@ -136,6 +136,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="provided.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="airports.txt" />
+    <Text Include="all_flights.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

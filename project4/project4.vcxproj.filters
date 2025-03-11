@@ -36,4 +36,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="airports.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="all_flights.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

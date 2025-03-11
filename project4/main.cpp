@@ -1,3 +1,5 @@
+
+#define _CRT_SECURE_NO_WARNINGS
 #include "tp.h"
 #include "fm.h"
 #include <iostream>
@@ -9,11 +11,21 @@
 #include <limits>
 #include <ctime>
 
+/**********
+BUGS
+    ==operator:  if flightsegments have the same departure time, 
+        the one loaded later would replace the previous!
+    something is desperately wrong with plan_travel...
+    flightSegment in iti not copied?                                    FIXED (changed Node flight vector to store object, but ineffcient)
+    not checking if iti exceeds max travel duration
+**********/
+
   // Helper function to format a UNIX timestamp.
 std::string format_time(int unix_time)
 {
     std::time_t time = unix_time;
     std::tm* tm_ptr = std::gmtime(&time);
+
     std::ostringstream oss;
     oss << std::put_time(tm_ptr, "%Y-%m-%d %H:%M UTC (") << unix_time << ")";
     return oss.str();
@@ -44,6 +56,7 @@ void print_itinerary(int start_time, const Itinerary& itinerary) {
     }
 }
 
+/*
   // Main entry point
 int main(int argc, char* argv[]) {
       // We expect either one argument, the test parameters file, or no arguments,
@@ -164,4 +177,43 @@ int main(int argc, char* argv[]) {
         }
         print_itinerary(start_time, itinerary);
     }
+}
+
+
+*/
+
+int main()
+{
+    
+    FlightManager fm;
+    fm.load_flight_data("some_flights.txt");
+    vector<FlightSegment> possibleFlights = fm.find_flights("SFO", 1736220840, 1736334600);
+    /*
+    if (possibleFlights.empty())
+        cerr << "Not Found!" << endl;
+    else
+    {
+        for (auto it : possibleFlights)
+            cerr << it.flight_no << endl;
+    }
+    */
+
+    AirportDB db;
+    db.load_airport_data("airports.txt");
+    TravelPlanner tp(fm, db);
+    vector<string>prefer;
+    vector<FlightSegment> flights = tp.getPossibleFlights("SFO", 1736217230, prefer);
+    Itinerary iti;
+
+    // test 1   no connection                               PASSED
+    tp.plan_travel("SFO", "CVG", 1736217240, iti);
+    print_itinerary(1736217240, iti);
+    cerr << "=============" << endl << endl;
+
+    // test 2   one connection                              PASSED???
+    tp.plan_travel("SFO", "EWR", 1736217240, iti);
+    print_itinerary(1736217240, iti);
+    cerr << "=============" << endl << endl;
+
+    // test 3   more connections
 }

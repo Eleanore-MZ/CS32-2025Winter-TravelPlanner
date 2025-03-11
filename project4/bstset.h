@@ -141,7 +141,7 @@ public:
 				prev = cur;
 				cur = cur->left;
 			}
-			else if (value > cur->m_value)
+			else if (cur->m_value < value)
 			{
 				cur = cur->right;
 			}

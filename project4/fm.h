@@ -8,6 +8,8 @@
 #include <string>
 #include <iomanip>
 
+
+
 class FlightManager:public FlightManagerBase
 {
 private:
@@ -17,6 +19,8 @@ private:
 		FlightSegmentWrapper(FlightSegment fs) : m_fs(fs) {}
 		bool operator< (const FlightSegmentWrapper& other) const
 			{ return m_fs.departure_time < other.m_fs.departure_time; }
+		bool operator==(const FlightSegmentWrapper& other) const
+		{ return m_fs.departure_time == other.m_fs.departure_time; }
 	};
 
 	std::unordered_map<std::string, BSTSet<FlightSegmentWrapper>> m_flightMap;
@@ -60,6 +64,7 @@ bool FlightManager::load_flight_data(std::string filename)
 
 		m_flightMap[departAirport].insert(FlightSegmentWrapper(FlightSegment(airline, flightNum, departAirport, arriveAirport, departureTime, duration)));
 	}
+	// std::cerr << "Load Successful!" << std::endl;
 	flightFile.close();
 	return true;
 }

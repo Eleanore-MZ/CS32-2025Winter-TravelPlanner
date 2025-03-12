@@ -6,24 +6,22 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 using namespace std;
 
 class TravelPlanner :public TravelPlannerBase
 {
 private:
-
-	vector<string> preferred;
+	set<string> preferred; // preferred airlines if any
 
 	struct Node
 	{
 		string airport;
 		int arrival_time;
 		int total_time;
-		Node* prevNode;
-		vector<FlightSegment> flights;
-		Node(string source_airport, int arrivalTime, int totalTime, Node* prev=nullptr)
-			:airport(source_airport), arrival_time(arrivalTime), total_time(totalTime), prevNode(prev) {}
+		Node(string source_airport, int arrivalTime, int totalTime)
+			:airport(source_airport), arrival_time(arrivalTime),total_time(totalTime) {}
 	};
 
 	struct NodeComparator
@@ -34,124 +32,138 @@ private:
 		}
 	};
 
-	
-
 public:
 	TravelPlanner(const FlightManagerBase& flight_manager, const AirportDB& airport_db)
 		:TravelPlannerBase(flight_manager, airport_db) {}
 	~TravelPlanner() {}
-
 	void add_preferred_airline(string airline);
-
 	bool plan_travel(string source_airport, string
 		destination_airport, int start_time, Itinerary& itinerary) const;
-
-	vector<FlightSegment>getPossibleFlights(string currentAirport, int currentTime, const vector<string>& preferredAirline) const; // move back to private
+	vector<FlightSegment>getPossibleFlights(string currentAirport, int currentTime) const; // move back to private
 };
 
 
 void TravelPlanner::add_preferred_airline(string airline)
 {
-	preferred.push_back(airline);
+	preferred.insert(airline);
 }
 
 bool TravelPlanner::plan_travel(string source_airport, string
 	destination_airport, int start_time, Itinerary& itinerary) const
 {
-	priority_queue<Node*, vector<Node*>, NodeComparator> pq; // open set sorted by arrival time
-	pq.push(new Node(source_airport, start_time, 0));
+	// Clear the itinerary
+    itinerary.source_airport = source_airport;
+    itinerary.destination_airport = destination_airport;
+    itinerary.flights.clear();
+    itinerary.total_duration = 0;
 	
-	unordered_map<string, int> arrival; // Keeps track of the earliest arrival time at each airport
-	arrival[source_airport] = start_time;
+	priority_queue<Node*, vector<Node*>, NodeComparator> pq; // open set sorted by arrival time
+	unordered_map<string, int> earliestArrival; // Keeps track of the earliest arrival time at each airport
+	unordered_map<string, FlightSegment*> previousFlights; // Keeps track of the previous flight segment to each airport
+	vector<Node*> nodesToDelete;  // For memory management
+	vector<FlightSegment*> flightSegmentsToDelete; // For memory management
 
+	pq.push(new Node(source_airport, start_time, 0));
+	earliestArrival[source_airport] = start_time;
 
 	while (!pq.empty())
 	{
 		Node* curr = pq.top();
+		cerr << "Got to " << curr->airport << endl;
 		pq.pop();
+		nodesToDelete.push_back(curr);
 
-		if (curr->airport == destination_airport) //path found
+		// If we already found the destination airport, we can stop
+		if (curr->airport == destination_airport)
 		{
-			// construct the path
-			cerr << "Path found" << endl;
-
+			cerr << "Arrived at " << curr->airport << endl;
 			itinerary.source_airport = source_airport;
 			itinerary.destination_airport = destination_airport;
-			itinerary.total_duration = curr->flights.back().departure_time + curr->flights.back().duration_sec - start_time;
 
-
-			for (auto it:curr->flights)
+			// Path reconstruction
+			vector<FlightSegment> path;
+			string current = destination_airport;
+			while (previousFlights.find(current) != previousFlights.end())
 			{
-				itinerary.flights.push_back(it);
-				// itinerary.total_duration += it.duration_sec;
+				const FlightSegment* segment = previousFlights[current];
+				path.push_back(*segment); // Dereference pointer to store the actual FlightSegment
+				cerr << "Pushed flight segment" << segment->flight_no << " from " << segment->source_airport << " to " << segment->destination_airport << endl;
+				current = segment->source_airport; // Move to the previous airport
+				if (current == source_airport) // Stop if we have reached the starting airport
+					break;
 			}
 
-			/*
-			while (n != nullptr)
+			if (path.empty() || current != source_airport)
 			{
-				if (n->prevNode != nullptr)
-				{
-					FlightSegment flight = n->flights.back();
-					itinerary.flights.insert(itinerary.flights.begin(), flight);
-					itinerary.total_duration += flight.duration_sec;
-				}
-				n = n->prevNode;
+				for (auto node : nodesToDelete) delete node;
+				for(auto fs: flightSegmentsToDelete) delete fs;
+				return false;
 			}
-			*/
-			
-			// clear up
-			while (!pq.empty())
+
+			reverse(path.begin(), path.end());
+			itinerary.flights = path;
+			itinerary.total_duration = curr->arrival_time - start_time;
+			for (Node* node : nodesToDelete) 
 			{
-				delete pq.top();
-				pq.pop();
+				delete node;
 			}
-			delete curr;
-			
 			return true;
 		}
 
 		// for each possible flights from the current airport
-		vector<FlightSegment> possibleFlights = getPossibleFlights(curr->airport, curr->arrival_time, preferred);
-		for (auto it : possibleFlights)
+		vector<FlightSegment> possibleFlights = getPossibleFlights(curr->airport, curr->arrival_time);
+		if (possibleFlights.empty())
+			continue;
+		for (const auto& it : possibleFlights)
 		{
-			string nextAirport = it.destination_airport;
+			cerr << "Find flight " << it.flight_no << " from " << it.source_airport << " to " << it.destination_airport << endl;
 			int nextArrivalTime = it.departure_time + it.duration_sec;
+			if (nextArrivalTime > start_time + get_max_duration())
+				continue;
+			int waitTime = it.departure_time - curr->arrival_time;
+			if(waitTime>get_max_layover())
+				continue;
+			if (!preferred.empty() && preferred.find(it.airline) == preferred.end())
+				continue;
+
+			string nextAirport = it.destination_airport;
 			int travelTime = it.duration_sec;
-			int totalTime=curr->total_time + travelTime; // not accounting for laying over?
+			int newTotalTime = nextArrivalTime-start_time;
 
-			cout << "here!! "<<it.flight_no << endl;
-
+			
 			// check if it gives us a earlier arrival time at the next airport
-			if (arrival.find(nextAirport) == arrival.end() || nextArrivalTime < arrival[nextAirport])
+			if (earliestArrival.find(nextAirport) == earliestArrival.end() || nextArrivalTime < earliestArrival[nextAirport])
 			{
-				arrival[nextAirport] = nextArrivalTime;
-				Node* nextNode = new Node(nextAirport, nextArrivalTime, totalTime, curr);
-				// nextNode->flights = curr->flights;
-				nextNode->flights.push_back(it);
-				pq.push(nextNode);
+				earliestArrival[nextAirport] = nextArrivalTime;
+				FlightSegment* newFlight = new FlightSegment(it);
+				flightSegmentsToDelete.push_back(newFlight);
+				auto i = previousFlights.find(nextAirport);
+				if (i != previousFlights.end())
+				{
+					previousFlights[nextAirport] = newFlight;
+				}
+				else
+				{
+					previousFlights.insert({ nextAirport, newFlight });
+				}
+				pq.push(new Node(nextAirport, nextArrivalTime, newTotalTime));
 			}
 		}
 	}
 
-	// if pq is empty and we haven't reach the destination
+	cerr << "Exited while loop" << endl;
+	
+	for (auto node : nodesToDelete) delete node;
+	for (auto fs : flightSegmentsToDelete) delete fs;
 	return false;
+	
 }
 
-vector<FlightSegment> TravelPlanner::getPossibleFlights(string currentAirport, int currentTime, const vector<string>& preferredAirline) const
+vector<FlightSegment> TravelPlanner::getPossibleFlights(string currentAirport, int currentTime) const
 {
 	vector<FlightSegment> possibleFlights 
 		= get_flight_manager().find_flights(currentAirport, 
 			currentTime + get_min_connection_time(), currentTime + get_max_layover());
-	if (!preferred.empty())
-	{
-		for (auto it = possibleFlights.begin(); it != possibleFlights.end(); )
-		{
-			if (find(preferred.begin(), preferred.end(), it->airline) == preferred.end())
-				it = possibleFlights.erase(it);
-			else
-				it++;
-		}
-	}
 	return possibleFlights;
 }
 

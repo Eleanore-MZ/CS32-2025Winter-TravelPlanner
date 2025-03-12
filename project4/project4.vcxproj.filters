@@ -43,10 +43,10 @@
     <Text Include="all_flights.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="params.txt">
+    <Text Include="some_flights.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="some_flights.txt">
+    <Text Include="params.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

@@ -63,8 +63,8 @@ bool FlightManager::load_flight_data(std::string filename)
 		}
 
 		m_flightMap[departAirport].insert(FlightSegmentWrapper(FlightSegment(airline, flightNum, departAirport, arriveAirport, departureTime, duration)));
+		std::cerr << "Flight " << flightNum << " loaded" << std::endl;
 	}
-	// std::cerr << "Load Successful!" << std::endl;
 	flightFile.close();
 	return true;
 }
@@ -72,6 +72,7 @@ bool FlightManager::load_flight_data(std::string filename)
 std::vector<FlightSegment> FlightManager::find_flights
 (std::string source_airport, int start_time, int end_time) const
 {
+	std::cerr << "Find flights initiated!" << std::endl;
 	auto airport = m_flightMap.find(source_airport);
 	std::vector<FlightSegment> flights;
 	if (airport != m_flightMap.end())
@@ -83,6 +84,7 @@ std::vector<FlightSegment> FlightManager::find_flights
 		while ((p = it.get_and_advance()) != nullptr && p->m_fs.departure_time < end_time)
 		{
 			flights.push_back(p->m_fs);
+			std::cerr << "find_flights found flight" << p->m_fs.flight_no << " from " << p->m_fs.source_airport << " to " << p->m_fs.destination_airport << std::endl;
 		}
 	}
 	return flights;

@@ -56,7 +56,7 @@ void print_itinerary(int start_time, const Itinerary& itinerary) {
     }
 }
 
-/*
+
   // Main entry point
 int main(int argc, char* argv[]) {
       // We expect either one argument, the test parameters file, or no arguments,
@@ -180,40 +180,38 @@ int main(int argc, char* argv[]) {
 }
 
 
-*/
+/*
+void testPlanTravel(string source, string dest, int start_time, Itinerary& iti)
+{
+	FlightManager fm;
+	fm.load_flight_data("some_flights.txt");
+	AirportDB db;
+	db.load_airport_data("airports.txt");
+	TravelPlanner tp(fm, db);
+	tp.plan_travel(source, dest, start_time, iti);
+    print_itinerary(start_time, iti);
+    cerr << "=============" << endl << endl;
+}
 
 int main()
 {
-    
     FlightManager fm;
     fm.load_flight_data("some_flights.txt");
-    vector<FlightSegment> possibleFlights = fm.find_flights("SFO", 1736220840, 1736334600);
-    /*
-    if (possibleFlights.empty())
-        cerr << "Not Found!" << endl;
-    else
-    {
-        for (auto it : possibleFlights)
-            cerr << it.flight_no << endl;
-    }
-    */
-
     AirportDB db;
     db.load_airport_data("airports.txt");
-    TravelPlanner tp(fm, db);
-    vector<string>prefer;
-    vector<FlightSegment> flights = tp.getPossibleFlights("SFO", 1736217230, prefer);
+
+    fm.find_flights("EWR", 1736217240, 1836217240);
+    
+	cerr << "======================" << endl;
+
     Itinerary iti;
 
-    // test 1   no connection                               PASSED
-    tp.plan_travel("SFO", "CVG", 1736217240, iti);
-    print_itinerary(1736217240, iti);
-    cerr << "=============" << endl << endl;
-
-    // test 2   one connection                              PASSED???
-    tp.plan_travel("SFO", "EWR", 1736217240, iti);
-    print_itinerary(1736217240, iti);
-    cerr << "=============" << endl << endl;
+    // tets 1 no connetction
+	testPlanTravel("SFO", "CVG", 1736217240, iti);
+    // test 2   one connection          
+	testPlanTravel("SFO", "EWR", 1736217240, iti);
 
     // test 3   more connections
+	testPlanTravel("SFO", "LAX", 1736217240, iti);
 }
+*/

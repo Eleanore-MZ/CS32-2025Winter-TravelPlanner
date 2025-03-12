@@ -1,0 +1,7 @@
+some_flights.txt
+SFO
+LAX
+1736217240
+24
+1
+4

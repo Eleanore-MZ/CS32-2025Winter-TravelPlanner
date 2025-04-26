@@ -1,4 +1,3 @@
-
 #define _CRT_SECURE_NO_WARNINGS
 #include "tp.h"
 #include "fm.h"
@@ -10,22 +9,13 @@
 #include <vector>
 #include <limits>
 #include <ctime>
-
-/**********
-BUGS
-    ==operator:  if flightsegments have the same departure time, 
-        the one loaded later would replace the previous!
-    something is desperately wrong with plan_travel...
-    flightSegment in iti not copied?                                    FIXED (changed Node flight vector to store object, but ineffcient)
-    not checking if iti exceeds max travel duration
-**********/
+#include <cmath>
 
   // Helper function to format a UNIX timestamp.
 std::string format_time(int unix_time)
 {
     std::time_t time = unix_time;
     std::tm* tm_ptr = std::gmtime(&time);
-
     std::ostringstream oss;
     oss << std::put_time(tm_ptr, "%Y-%m-%d %H:%M UTC (") << unix_time << ")";
     return oss.str();
@@ -36,6 +26,7 @@ void print_itinerary(int start_time, const Itinerary& itinerary) {
     std::cout << "Source: " << itinerary.source_airport
               << ", Destination: " << itinerary.destination_airport;
     std::cout << ", Total Duration: " << itinerary.total_duration / 3600.0 << " hours\n";
+    std::cout << "Arriving at source airport at: " << format_time(start_time) << "\n";
     std::cout << "Wait time at initial airport: "
               << (itinerary.flights[0].departure_time - start_time) / 3600.0
               << " hours\n";
@@ -178,40 +169,3 @@ int main(int argc, char* argv[]) {
         print_itinerary(start_time, itinerary);
     }
 }
-
-
-/*
-void testPlanTravel(string source, string dest, int start_time, Itinerary& iti)
-{
-	FlightManager fm;
-	fm.load_flight_data("some_flights.txt");
-	AirportDB db;
-	db.load_airport_data("airports.txt");
-	TravelPlanner tp(fm, db);
-	tp.plan_travel(source, dest, start_time, iti);
-    print_itinerary(start_time, iti);
-    cerr << "=============" << endl << endl;
-}
-
-int main()
-{
-    FlightManager fm;
-    fm.load_flight_data("some_flights.txt");
-    AirportDB db;
-    db.load_airport_data("airports.txt");
-
-    fm.find_flights("EWR", 1736217240, 1836217240);
-    
-	cerr << "======================" << endl;
-
-    Itinerary iti;
-
-    // tets 1 no connetction
-	testPlanTravel("SFO", "CVG", 1736217240, iti);
-    // test 2   one connection          
-	testPlanTravel("SFO", "EWR", 1736217240, iti);
-
-    // test 3   more connections
-	testPlanTravel("SFO", "LAX", 1736217240, iti);
-}
-*/

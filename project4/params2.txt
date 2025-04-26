@@ -1,0 +1,7 @@
+some_flights.txt
+SFO
+MIA
+1736230679
+24
+1
+3

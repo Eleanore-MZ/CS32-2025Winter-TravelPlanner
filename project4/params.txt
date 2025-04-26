@@ -1,7 +1,7 @@
-some_flights.txt
-SFO
-LAX
-1736217240
+all_flights.txt
+HHR
+PTU
+1736284400
 24
 1
 4

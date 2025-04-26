@@ -49,5 +49,11 @@
     <Text Include="params.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="params2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="some_flights2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

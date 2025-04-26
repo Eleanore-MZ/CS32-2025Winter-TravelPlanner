@@ -8,6 +8,7 @@
 #include <vector>
 #include <limits>
 #include <ctime>
+#include <cmath>
 
   // Helper function to format a UNIX timestamp.
 std::string format_time(int unix_time)
@@ -24,6 +25,7 @@ void print_itinerary(int start_time, const Itinerary& itinerary) {
     std::cout << "Source: " << itinerary.source_airport
               << ", Destination: " << itinerary.destination_airport;
     std::cout << ", Total Duration: " << itinerary.total_duration / 3600.0 << " hours\n";
+    std::cout << "Arriving at source airport at: " << format_time(start_time) << "\n";
     std::cout << "Wait time at initial airport: "
               << (itinerary.flights[0].departure_time - start_time) / 3600.0
               << " hours\n";
